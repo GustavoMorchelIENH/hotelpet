@@ -1,0 +1,19 @@
+@host = http://127.0.0.1:3333
+
+GET {{host}}
+###
+GET {{host}}/users
+###
+POST {{host}}/users
+content-type: application/json
+
+{ "nome": "Elon", "sobrenome": "Musk", "email": "ellinho67@hotmail.com", "senha": "ilovejiminbts666" }
+###
+GET {{host}}/users/1
+###
+PATCH {{host}}/users/1
+content-type: application/json
+
+{ "sobrenome": "Reeve Musk" }
+###
+DELETE {{host}}/users/1
