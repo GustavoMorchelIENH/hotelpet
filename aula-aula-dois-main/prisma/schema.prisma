@@ -18,3 +18,17 @@ model User {
 
   @@map("users")
 }
+
+model Hotel {
+  id           Int      @id @default(autoincrement())
+  nome         String   @db.VarChar(120)
+  endereco     String   @db.VarChar(200)
+  descricao    String   @db.Text
+  estrelas     Int
+  preco        Decimal  @db.Decimal(10, 2)
+  fotoUrl      String?  @db.VarChar(500)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("hotels")
+}
