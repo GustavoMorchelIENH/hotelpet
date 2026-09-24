@@ -152,7 +152,7 @@ export function paginaCheckout(): string {
       <div id="checkout">${carregando}</div>
 
       <template id="tpl-checkout">
-        <form id="form-checkout" class="row g-4">
+        <form id="form-checkout" class="row g-4" autocomplete="off" novalidate>
           <div class="col-lg-7">
             <div class="card border-0 shadow-sm rounded-4">
               <div class="card-body">
@@ -173,22 +173,17 @@ export function paginaCheckout(): string {
                   </label>
                 </div>
 
-                <div id="dados-pix" class="alert alert-light border mt-3 mb-0 small">
-                  Após confirmar, o pagamento via PIX é aprovado na hora (simulação).
-                </div>
-
                 <div id="dados-cartao" class="mt-3 d-none">
                   <div class="row g-2">
-                    <div class="col-12"><input class="form-control" name="nomeCartao" placeholder="Nome impresso no cartão" /></div>
-                    <div class="col-12"><input class="form-control" name="numeroCartao" placeholder="Número do cartão" inputmode="numeric" maxlength="19" /></div>
-                    <div class="col-6"><input class="form-control" name="validade" placeholder="MM/AA" maxlength="5" /></div>
-                    <div class="col-6"><input class="form-control" name="cvv" placeholder="CVV" inputmode="numeric" maxlength="4" /></div>
+                    <div class="col-12"><input class="form-control" name="titular" autocomplete="off" placeholder="Nome impresso no cartão" /></div>
+                    <div class="col-12"><input class="form-control" name="numero" autocomplete="off" placeholder="Número do cartão" inputmode="numeric" maxlength="19" /></div>
+                    <div class="col-6"><input class="form-control" name="vencimento" autocomplete="off" placeholder="MM/AA" maxlength="5" /></div>
+                    <div class="col-6"><input class="form-control" name="codigo" autocomplete="off" placeholder="CVV" inputmode="numeric" maxlength="4" /></div>
                     <div class="col-12">
                       <label class="form-label small text-muted mb-1" for="parcelas">Parcelas</label>
                       <select class="form-select" name="parcelas" id="parcelas">${opcoesParcelas}</select>
                     </div>
                   </div>
-                  <div class="form-text">Os dados do cartão não são enviados nem armazenados (pagamento simulado).</div>
                 </div>
               </div>
             </div>
@@ -283,7 +278,6 @@ export function paginaCheckout(): string {
         const cartao = formaPagamento === 'cartao';
 
         document.getElementById('dados-cartao').classList.toggle('d-none', !cartao);
-        document.getElementById('dados-pix').classList.toggle('d-none', cartao);
         document.getElementById('resumo-subtotal').textContent = HotelPet.dinheiro(totais.subtotal);
         document.getElementById('resumo-desconto').textContent = '− ' + HotelPet.dinheiro(totais.desconto);
         document.getElementById('resumo-total').textContent = HotelPet.dinheiro(totais.total);
@@ -299,30 +293,12 @@ export function paginaCheckout(): string {
         }
       }
 
-      function validarCartao(form) {
-        const numero = form.numeroCartao.value.replace(/\\D/g, '');
-        if (form.nomeCartao.value.trim().length < 3) return 'Informe o nome impresso no cartão';
-        if (numero.length < 13 || numero.length > 19) return 'Número do cartão inválido';
-        if (!/^(0[1-9]|1[0-2])\\/\\d{2}$/.test(form.validade.value)) return 'Validade inválida (use MM/AA)';
-        if (!/^\\d{3,4}$/.test(form.cvv.value)) return 'CVV inválido';
-        return null;
-      }
-
       async function confirmarPagamento(evento) {
         evento.preventDefault();
-        const { form, formaPagamento, parcelas } = lerFormulario();
+        const { formaPagamento, parcelas } = lerFormulario();
         const erro = document.getElementById('erro-checkout');
         const botao = document.getElementById('btn-confirmar');
         erro.classList.add('d-none');
-
-        if (formaPagamento === 'cartao') {
-          const problema = validarCartao(form);
-          if (problema) {
-            erro.textContent = problema;
-            erro.classList.remove('d-none');
-            return;
-          }
-        }
 
         botao.disabled = true;
         botao.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processando...';
