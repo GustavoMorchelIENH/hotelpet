@@ -29,7 +29,7 @@ export class AppService {
                 <p class="card-text text-secondary">${hotel.descricao}</p>
                 <div class="mt-auto d-flex justify-content-between align-items-center">
                   <span class="fw-bold text-primary fs-5">R$ ${price}</span>
-                  <button class="btn btn-primary btn-sm">Alugar</button>
+                  <button class="btn btn-primary btn-sm" onclick="alugar(${hotel.id})">Alugar</button>
                 </div>
               </div>
             </div>
@@ -96,6 +96,21 @@ export class AppService {
         </main>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+          async function alugar(hotelId) {
+            const resposta = await fetch('/cart/1', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ hotelId: hotelId, diarias: 1 }),
+            });
+
+            if (resposta.ok) {
+              alert('Hotel adicionado ao carrinho!');
+            } else {
+              alert('Não foi possível adicionar ao carrinho');
+            }
+          }
+        </script>
       </body>
       </html>
     `;
