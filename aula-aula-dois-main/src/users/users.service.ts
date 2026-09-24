@@ -2,10 +2,12 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { LoginDto } from './dto/login.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -24,6 +26,23 @@ export class UsersService {
     }
 
     return this.prisma.user.create({ data: createUserDto });
+  }
+
+  async login(loginDto: LoginDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: loginDto.email },
+    });
+
+    if (!user || user.senha !== loginDto.senha) {
+      throw new UnauthorizedException('Email ou senha inválidos');
+    }
+
+    return {
+      id: user.id,
+      nome: user.nome,
+      sobrenome: user.sobrenome,
+      email: user.email,
+    };
   }
 
   findAll(): Promise<User[]> {

@@ -16,6 +16,7 @@ model User {
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
   carrinho     CartItem[]
+  pedidos      Order[]
 
   @@map("users")
 }
@@ -45,4 +46,32 @@ model CartItem {
   hotel    Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
 
   @@map("cart_items")
+}
+
+model Order {
+  id             Int         @id @default(autoincrement())
+  userId         Int
+  formaPagamento String      @db.VarChar(20)
+  parcelas       Int         @default(1)
+  subtotal       Decimal     @db.Decimal(10, 2)
+  desconto       Decimal     @db.Decimal(10, 2)
+  total          Decimal     @db.Decimal(10, 2)
+  criadoEm       DateTime    @default(now())
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itens          OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id            Int     @id @default(autoincrement())
+  orderId       Int
+  hotelId       Int
+  nomeHotel     String  @db.VarChar(120)
+  precoUnitario Decimal @db.Decimal(10, 2)
+  diarias       Int
+  subtotal      Decimal @db.Decimal(10, 2)
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
 }

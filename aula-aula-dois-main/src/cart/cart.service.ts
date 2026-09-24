@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { calcularSubtotalItem } from '../orders/pricing';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddCartItemDto } from './dto/add-cart-item.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
@@ -14,12 +15,16 @@ export class CartService {
       orderBy: { id: 'asc' },
     });
 
-    let total = 0;
-    for (const item of itens) {
-      total += Number(item.hotel.preco) * item.diarias;
-    }
+    let totalCentavos = 0;
+    const itensComSubtotal = itens.map((item) => {
+      const preco = Number(item.hotel.preco);
+      const subtotal = calcularSubtotalItem({ preco, diarias: item.diarias });
+      totalCentavos += Math.round(subtotal * 100);
 
-    return { itens, total };
+      return { ...item, hotel: { ...item.hotel, preco }, subtotal };
+    });
+
+    return { itens: itensComSubtotal, total: totalCentavos / 100 };
   }
 
   async add(userId: number, addCartItemDto: AddCartItemDto) {

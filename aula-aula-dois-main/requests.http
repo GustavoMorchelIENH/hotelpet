@@ -34,3 +34,17 @@ content-type: application/json
 DELETE {{host}}/cart/1/1
 ###
 DELETE {{host}}/cart/1
+###
+POST {{host}}/users/login
+content-type: application/json
+
+{ "email": "ellinho67@hotmail.com", "senha": "ilovejiminbts666" }
+###
+POST {{host}}/orders/1
+content-type: application/json
+
+{ "formaPagamento": "cartao", "parcelas": 3 }
+###
+GET {{host}}/orders/1
+###
+GET {{host}}/orders/1/1
