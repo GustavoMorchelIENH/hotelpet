@@ -107,7 +107,8 @@ export class AppService {
             if (resposta.ok) {
               alert('Hotel adicionado ao carrinho!');
             } else {
-              alert('Não foi possível adicionar ao carrinho');
+              const erro = await resposta.json();
+              alert('Erro ao adicionar ao carrinho: ' + erro.message);
             }
           }
         </script>

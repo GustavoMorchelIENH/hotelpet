@@ -9,7 +9,7 @@
     "node": ">=24.9"
   },
   "scripts": {
-    "build": "nest build",
+    "build": "prisma migrate deploy && nest build",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
