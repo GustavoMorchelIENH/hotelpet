@@ -17,3 +17,20 @@ content-type: application/json
 { "sobrenome": "Reeve Musk" }
 ###
 DELETE {{host}}/users/1
+
+###
+GET {{host}}/cart/1
+###
+POST {{host}}/cart/1
+content-type: application/json
+
+{ "hotelId": 1, "diarias": 2 }
+###
+PATCH {{host}}/cart/1/1
+content-type: application/json
+
+{ "diarias": 3 }
+###
+DELETE {{host}}/cart/1/1
+###
+DELETE {{host}}/cart/1

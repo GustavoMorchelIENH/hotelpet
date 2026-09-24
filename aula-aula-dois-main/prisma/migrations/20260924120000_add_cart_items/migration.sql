@@ -1,0 +1,9 @@
+CREATE TABLE "cart_items" (
+    "id" SERIAL PRIMARY KEY,
+    "userId" INTEGER NOT NULL,
+    "hotelId" INTEGER NOT NULL,
+    "diarias" INTEGER NOT NULL DEFAULT 1,
+    "criadoEm" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "cart_items_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "cart_items_hotelId_fkey" FOREIGN KEY ("hotelId") REFERENCES "hotels"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);

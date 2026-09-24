@@ -15,6 +15,7 @@ model User {
   senha        String   @db.VarChar(67)
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
+  carrinho     CartItem[]
 
   @@map("users")
 }
@@ -29,6 +30,19 @@ model Hotel {
   fotoUrl      String?  @db.VarChar(500)
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
+  carrinho     CartItem[]
 
   @@map("hotels")
+}
+
+model CartItem {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  hotelId  Int
+  diarias  Int      @default(1)
+  criadoEm DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hotel    Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@map("cart_items")
 }
