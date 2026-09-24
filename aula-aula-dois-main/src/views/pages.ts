@@ -60,20 +60,14 @@ export function paginaCarrinho(): string {
               '<div class="flex-grow-1">' +
                 '<h5 class="mb-1">' + HotelPet.esc(item.hotel.nome) + '</h5>' +
                 '<div class="small text-muted">' + HotelPet.esc(item.hotel.endereco) + '</div>' +
+                (item.dataEntrada ? '<div class="small"><i class="bi bi-calendar-event"></i> ' + HotelPet.periodo(item.dataEntrada, item.diarias) + '</div>' : '') +
                 '<div class="small">' + HotelPet.dinheiro(item.hotel.preco) + ' / diária</div>' +
-              '</div>' +
-              '<div class="input-group input-group-sm w-auto">' +
-                '<button class="btn btn-outline-secondary" onclick="alterarDiarias(' + item.id + ', ' + (item.diarias - 1) + ')"' + (item.diarias <= 1 ? ' disabled' : '') + '>−</button>' +
-                '<span class="input-group-text bg-white diarias-input justify-content-center">' + item.diarias + '</span>' +
-                '<button class="btn btn-outline-secondary" onclick="alterarDiarias(' + item.id + ', ' + (item.diarias + 1) + ')">+</button>' +
               '</div>' +
               '<div class="fw-bold text-end" style="min-width: 110px">' + HotelPet.dinheiro(item.subtotal) + '</div>' +
               '<button class="btn btn-outline-danger btn-sm" title="Remover" onclick="removerItem(' + item.id + ')"><i class="bi bi-trash"></i></button>' +
             '</div>' +
           '</div>'
         ).join('');
-
-        const totalDiarias = carrinho.itens.reduce((soma, item) => soma + item.diarias, 0);
 
         container.innerHTML =
           '<div class="row g-4">' +
@@ -84,7 +78,6 @@ export function paginaCarrinho(): string {
               '<div class="card border-0 shadow-sm rounded-4">' +
                 '<div class="card-body">' +
                   '<h5 class="fw-bold mb-3">Resumo</h5>' +
-                  '<div class="d-flex justify-content-between mb-2"><span>Diárias</span><span>' + totalDiarias + '</span></div>' +
                   '<div class="d-flex justify-content-between mb-3"><span>Subtotal</span><span>' + HotelPet.dinheiro(carrinho.total) + '</span></div>' +
                   '<hr />' +
                   '<div class="d-flex justify-content-between fs-5 fw-bold mb-3"><span>Total</span><span class="text-primary">' + HotelPet.dinheiro(carrinho.total) + '</span></div>' +
@@ -94,18 +87,6 @@ export function paginaCarrinho(): string {
               '</div>' +
             '</div>' +
           '</div>';
-      }
-
-      async function alterarDiarias(itemId, diarias) {
-        if (diarias < 1) return;
-        const usuario = HotelPet.usuario();
-
-        try {
-          await HotelPet.api('/cart/' + usuario.id + '/' + itemId, { method: 'PATCH', body: JSON.stringify({ diarias }) });
-          await carregarCarrinho();
-        } catch (e) {
-          HotelPet.aviso(e.message, 'danger');
-        }
       }
 
       async function removerItem(itemId) {
@@ -254,7 +235,9 @@ export function paginaCheckout(): string {
 
         document.getElementById('resumo-itens').innerHTML = carrinhoAtual.itens.map((item) =>
           '<div class="d-flex justify-content-between small mb-2">' +
-            '<span>' + HotelPet.esc(item.hotel.nome) + ' <span class="text-muted">· ' + item.diarias + 'x ' + HotelPet.dinheiro(item.hotel.preco) + '</span></span>' +
+            '<span>' + HotelPet.esc(item.hotel.nome) +
+              (item.dataEntrada ? '<br /><span class="text-muted">' + HotelPet.periodo(item.dataEntrada, item.diarias) + '</span>' : '') +
+            '</span>' +
             '<span>' + HotelPet.dinheiro(item.subtotal) + '</span>' +
           '</div>'
         ).join('');
@@ -357,8 +340,9 @@ export function paginaPedido(orderId: number): string {
           const pedido = await HotelPet.api('/orders/' + usuario.id + '/' + ${orderId});
           const itens = pedido.itens.map((item) =>
             '<tr>' +
-              '<td>' + HotelPet.esc(item.nomeHotel) + '</td>' +
-              '<td class="text-center">' + item.diarias + '</td>' +
+              '<td>' + HotelPet.esc(item.nomeHotel) +
+                (item.dataEntrada ? '<div class="small text-muted">' + HotelPet.periodo(item.dataEntrada, item.diarias) + '</div>' : '') +
+              '</td>' +
               '<td class="text-end">' + HotelPet.dinheiro(item.precoUnitario) + '</td>' +
               '<td class="text-end">' + HotelPet.dinheiro(item.subtotal) + '</td>' +
             '</tr>'
@@ -373,7 +357,7 @@ export function paginaPedido(orderId: number): string {
               '</div>' +
               '<div class="card border-0 shadow-sm rounded-4"><div class="card-body">' +
                 '<table class="table align-middle">' +
-                  '<thead><tr><th>Hotel</th><th class="text-center">Diárias</th><th class="text-end">Diária</th><th class="text-end">Subtotal</th></tr></thead>' +
+                  '<thead><tr><th>Hotel</th><th class="text-end">Diária</th><th class="text-end">Subtotal</th></tr></thead>' +
                   '<tbody>' + itens + '</tbody>' +
                 '</table>' +
                 '<div class="d-flex justify-content-between mb-2"><span>Subtotal</span><span>' + HotelPet.dinheiro(pedido.subtotal) + '</span></div>' +

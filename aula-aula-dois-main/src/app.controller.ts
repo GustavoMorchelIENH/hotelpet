@@ -11,6 +11,12 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('hotel/:id')
+  @Header('Content-Type', 'text/html; charset=utf-8')
+  getHotel(@Param('id', ParseIntPipe) id: number): Promise<string> {
+    return this.appService.getHotel(id);
+  }
+
   @Get('carrinho')
   @Header('Content-Type', 'text/html; charset=utf-8')
   getCarrinho(): string {

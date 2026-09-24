@@ -22,6 +22,7 @@ type PedidoComItens = {
     nomeHotel: string;
     precoUnitario: unknown;
     diarias: number;
+    dataEntrada: Date | null;
     subtotal: unknown;
   }[];
 };
@@ -47,6 +48,7 @@ export class OrdersService {
         nomeHotel: item.hotel.nome,
         precoUnitario: Number(item.hotel.preco),
         diarias: item.diarias,
+        dataEntrada: item.dataEntrada,
         subtotal: calcularSubtotalItem({
           preco: Number(item.hotel.preco),
           diarias: item.diarias,

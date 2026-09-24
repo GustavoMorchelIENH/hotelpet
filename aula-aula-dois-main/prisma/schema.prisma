@@ -8,13 +8,13 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  nome         String   @db.VarChar(67)
-  sobrenome    String   @db.VarChar(67)
-  email        String   @unique @db.VarChar(255)
-  senha        String   @db.VarChar(67)
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  id           Int        @id @default(autoincrement())
+  nome         String     @db.VarChar(67)
+  sobrenome    String     @db.VarChar(67)
+  email        String     @unique @db.VarChar(255)
+  senha        String     @db.VarChar(67)
+  criadoEm     DateTime   @default(now())
+  atualizadoEm DateTime   @updatedAt
   carrinho     CartItem[]
   pedidos      Order[]
 
@@ -22,28 +22,29 @@ model User {
 }
 
 model Hotel {
-  id           Int      @id @default(autoincrement())
-  nome         String   @db.VarChar(120)
-  endereco     String   @db.VarChar(200)
-  descricao    String   @db.Text
+  id           Int        @id @default(autoincrement())
+  nome         String     @db.VarChar(120)
+  endereco     String     @db.VarChar(200)
+  descricao    String     @db.Text
   estrelas     Int
-  preco        Decimal  @db.Decimal(10, 2)
-  fotoUrl      String?  @db.VarChar(500)
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  preco        Decimal    @db.Decimal(10, 2)
+  fotoUrl      String?    @db.VarChar(500)
+  criadoEm     DateTime   @default(now())
+  atualizadoEm DateTime   @updatedAt
   carrinho     CartItem[]
 
   @@map("hotels")
 }
 
 model CartItem {
-  id       Int      @id @default(autoincrement())
-  userId   Int
-  hotelId  Int
-  diarias  Int      @default(1)
-  criadoEm DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hotel    Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  hotelId     Int
+  diarias     Int       @default(1)
+  dataEntrada DateTime? @db.Date
+  criadoEm    DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hotel       Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
 
   @@map("cart_items")
 }
@@ -64,14 +65,15 @@ model Order {
 }
 
 model OrderItem {
-  id            Int     @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   orderId       Int
   hotelId       Int
-  nomeHotel     String  @db.VarChar(120)
-  precoUnitario Decimal @db.Decimal(10, 2)
+  nomeHotel     String    @db.VarChar(120)
+  precoUnitario Decimal   @db.Decimal(10, 2)
   diarias       Int
-  subtotal      Decimal @db.Decimal(10, 2)
-  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  dataEntrada   DateTime? @db.Date
+  subtotal      Decimal   @db.Decimal(10, 2)
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("order_items")
 }

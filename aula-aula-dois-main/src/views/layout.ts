@@ -28,7 +28,6 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
         .navbar-brand { font-weight: 700; }
         .carousel-item img { height: 420px; object-fit: cover; }
         .cart-thumb { width: 96px; height: 72px; object-fit: cover; }
-        .diarias-input { width: 64px; text-align: center; }
       </style>
     </head>
     <body>
@@ -116,6 +115,18 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
 
           dinheiro(valor) {
             return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+          },
+
+          // Datas vêm do banco como meia-noite UTC; formatar em UTC evita mostrar o dia anterior
+          data(valor) {
+            return new Date(valor).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+          },
+
+          periodo(dataEntrada, diarias) {
+            if (!dataEntrada) return '';
+            const saida = new Date(dataEntrada);
+            saida.setUTCDate(saida.getUTCDate() + diarias);
+            return this.data(dataEntrada) + ' a ' + this.data(saida);
           },
 
           esc(valor) {

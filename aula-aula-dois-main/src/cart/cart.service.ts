@@ -44,14 +44,24 @@ export class CartService {
       );
     }
 
+    const dataEntrada = addCartItemDto.dataEntrada
+      ? new Date(addCartItemDto.dataEntrada)
+      : null;
+
+    // O mesmo hotel com a mesma data de entrada vira um item só: com datas, vale o
+    // período novo; sem datas, as diárias são somadas
     const item = await this.prisma.cartItem.findFirst({
-      where: { userId, hotelId: addCartItemDto.hotelId },
+      where: { userId, hotelId: addCartItemDto.hotelId, dataEntrada },
     });
 
     if (item) {
       return this.prisma.cartItem.update({
         where: { id: item.id },
-        data: { diarias: item.diarias + addCartItemDto.diarias },
+        data: {
+          diarias: dataEntrada
+            ? addCartItemDto.diarias
+            : item.diarias + addCartItemDto.diarias,
+        },
       });
     }
 
@@ -60,6 +70,7 @@ export class CartService {
         userId,
         hotelId: addCartItemDto.hotelId,
         diarias: addCartItemDto.diarias,
+        dataEntrada,
       },
     });
   }
