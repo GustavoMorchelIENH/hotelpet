@@ -9,10 +9,14 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
-      whitelist: true
-    })
+      whitelist: true,
+    }),
   );
 
   await app.listen(process.env.PORT ?? 3333);
 }
-bootstrap();
+
+void bootstrap().catch((erro: unknown) => {
+  console.error('Falha ao iniciar o servidor:', erro);
+  process.exitCode = 1;
+});

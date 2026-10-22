@@ -9,16 +9,12 @@ const precisaLogin = `
   </div>
 `;
 
-const carregando = `
-  <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
-`;
-
 export function paginaCarrinho(): string {
   return layout({
     titulo: 'Carrinho | HotelPet',
     conteudo: `
       <h2 class="fw-bold mb-4">Meu carrinho</h2>
-      <div id="carrinho">${carregando}</div>
+      <div id="carrinho"></div>
     `,
     script: `
       const precisaLogin = ${JSON.stringify(precisaLogin)};
@@ -130,7 +126,7 @@ export function paginaCheckout(): string {
     conteudo: `
       <nav class="mb-3 small"><a href="/carrinho">← Voltar ao carrinho</a></nav>
       <h2 class="fw-bold mb-4">Finalizar compra</h2>
-      <div id="checkout">${carregando}</div>
+      <div id="checkout"></div>
 
       <template id="tpl-checkout">
         <form id="form-checkout" class="row g-4" autocomplete="off" novalidate>
@@ -194,7 +190,6 @@ export function paginaCheckout(): string {
       const precisaLogin = ${JSON.stringify(precisaLogin)};
       let carrinhoAtual = null;
 
-      // Mesma regra de src/orders/pricing.ts; o valor final é sempre recalculado no servidor
       function calcularTotais(itens, formaPagamento, parcelas) {
         const subtotal = itens.reduce((soma, item) => soma + Math.round(item.hotel.preco * 100) * item.diarias, 0);
         const desconto = formaPagamento === 'pix' ? Math.round(subtotal * DESCONTO_PIX) : 0;
@@ -322,7 +317,7 @@ const scriptFormatarPedido = `
 export function paginaPedido(orderId: number): string {
   return layout({
     titulo: 'Pedido confirmado | HotelPet',
-    conteudo: `<div id="pedido">${carregando}</div>`,
+    conteudo: `<div id="pedido"></div>`,
     script: `
       const precisaLogin = ${JSON.stringify(precisaLogin)};
       ${scriptFormatarPedido}
@@ -389,7 +384,7 @@ export function paginaPedidos(): string {
     titulo: 'Meus pedidos | HotelPet',
     conteudo: `
       <h2 class="fw-bold mb-4">Meus pedidos</h2>
-      <div id="pedidos">${carregando}</div>
+      <div id="pedidos"></div>
     `,
     script: `
       const precisaLogin = ${JSON.stringify(precisaLogin)};
@@ -438,6 +433,340 @@ export function paginaPedidos(): string {
 
       document.addEventListener('hotelpet:login', carregarPedidos);
       carregarPedidos();
+    `,
+  });
+}
+
+export function paginaPerfil(): string {
+  return layout({
+    titulo: 'Meu perfil | HotelPet',
+    conteudo: `
+      <h2 class="fw-bold mb-4">Meu perfil</h2>
+      <div id="perfil"></div>
+    `,
+    script: `
+      const precisaLogin = ${JSON.stringify(precisaLogin)};
+      const hoje = new Date();
+      let usuarioAtual = null;
+      let pets = [];
+      let eventos = [];
+      let mesExibido = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      let dataSelecionada = dataLocal(hoje);
+
+      function dataLocal(data) {
+        const ano = data.getFullYear();
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const dia = String(data.getDate()).padStart(2, '0');
+        return ano + '-' + mes + '-' + dia;
+      }
+
+      function chaveDados(tipo) {
+        return 'hotelpet:usuario:' + usuarioAtual.id + ':' + tipo;
+      }
+
+      function lerDados(tipo) {
+        try {
+          const dados = JSON.parse(localStorage.getItem(chaveDados(tipo)) || '[]');
+          return Array.isArray(dados) ? dados : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function salvarDados() {
+        localStorage.setItem(chaveDados('pets'), JSON.stringify(pets));
+        localStorage.setItem(chaveDados('eventos'), JSON.stringify(eventos));
+      }
+
+      function carregarPerfil() {
+        const container = document.getElementById('perfil');
+        usuarioAtual = HotelPet.usuario();
+
+        if (!usuarioAtual) {
+          container.innerHTML = precisaLogin;
+          return;
+        }
+
+        pets = lerDados('pets');
+        eventos = lerDados('eventos');
+        container.innerHTML =
+          '<div class="card border-0 shadow-sm">' +
+            '<div class="card-body p-4">' +
+              '<h5 class="fw-bold mb-3">Dados da conta</h5>' +
+              '<form id="form-perfil" class="row g-3">' +
+                '<div class="col-md-6">' +
+                  '<label class="form-label" for="nome">Nome</label>' +
+                  '<input class="form-control" id="nome" name="nome" minlength="2" maxlength="67" required />' +
+                '</div>' +
+                '<div class="col-md-6">' +
+                  '<label class="form-label" for="sobrenome">Sobrenome</label>' +
+                  '<input class="form-control" id="sobrenome" name="sobrenome" minlength="2" maxlength="67" required />' +
+                '</div>' +
+                '<div class="col-12">' +
+                  '<label class="form-label" for="email">Email</label>' +
+                  '<input class="form-control" id="email" name="email" type="email" required />' +
+                '</div>' +
+                '<div class="col-12">' +
+                  '<div id="erro-perfil" class="alert alert-danger d-none mb-0"></div>' +
+                  '<button class="btn btn-primary" type="submit">Salvar alterações</button>' +
+                '</div>' +
+              '</form>' +
+            '</div>' +
+          '</div>' +
+          '<div class="card border-0 shadow-sm mt-4">' +
+            '<div class="card-body p-4">' +
+              '<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">' +
+                '<h3 class="h5 fw-bold mb-0">Calendário dos pets</h3>' +
+                '<div class="d-flex align-items-center gap-2">' +
+                  '<button id="mes-anterior" type="button" class="btn btn-outline-secondary" aria-label="Mês anterior"><i class="bi bi-chevron-left"></i></button>' +
+                  '<strong id="mes-atual" class="text-center" style="min-width: 150px"></strong>' +
+                  '<button id="proximo-mes" type="button" class="btn btn-outline-secondary" aria-label="Próximo mês"><i class="bi bi-chevron-right"></i></button>' +
+                '</div>' +
+              '</div>' +
+              '<div class="pet-calendar-scroll">' +
+                '<div class="pet-calendar">' +
+                  '<div class="pet-calendar-grid text-center small fw-semibold text-secondary mb-2">' +
+                    '<div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>' +
+                  '</div>' +
+                  '<div id="dias-calendario" class="pet-calendar-grid"></div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+
+        const form = document.getElementById('form-perfil');
+        form.elements.nome.value = usuarioAtual.nome || '';
+        form.elements.sobrenome.value = usuarioAtual.sobrenome || '';
+        form.elements.email.value = usuarioAtual.email || '';
+        form.addEventListener('submit', salvarPerfil);
+
+        container.insertAdjacentHTML('beforeend',
+          '<div class="row g-4 mt-1">' +
+            '<div class="col-lg-5">' +
+              '<div class="card border-0 shadow-sm h-100"><div class="card-body p-4">' +
+                '<h3 class="h5 fw-bold">Meus pets</h3>' +
+                '<form id="form-pet" class="row g-2 mb-3">' +
+                  '<div class="col-12"><label class="form-label mb-1" for="pet-nome">Nome</label><input class="form-control" id="pet-nome" name="nome" maxlength="60" required /></div>' +
+                  '<div class="col-12"><label class="form-label mb-1" for="pet-especie">Espécie</label><input class="form-control" id="pet-especie" name="especie" placeholder="Cachorro, gato..." maxlength="40" required /></div>' +
+                  '<div class="col-12"><button class="btn btn-primary" type="submit"><i class="bi bi-plus-lg me-1"></i>Cadastrar pet</button></div>' +
+                '</form>' +
+                '<ul id="lista-pets" class="list-group list-group-flush"></ul>' +
+              '</div></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="modal fade" id="eventoModal" tabindex="-1" aria-labelledby="titulo-evento-modal" aria-hidden="true">' +
+            '<div class="modal-dialog modal-dialog-centered">' +
+              '<div class="modal-content">' +
+                '<div class="modal-header">' +
+                  '<div><h3 class="modal-title h5 fw-bold mb-1" id="titulo-evento-modal">Compromissos do dia</h3>' +
+                    '<div class="small text-secondary" id="titulo-dia"></div></div>' +
+                  '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                  '<form id="form-evento" class="row g-2">' +
+                    '<div class="col-md-6"><label class="form-label mb-1" for="evento-pet">Pet</label><select class="form-select" id="evento-pet" name="petId" required></select></div>' +
+                    '<div class="col-md-6"><label class="form-label mb-1" for="evento-tipo">Tipo</label><select class="form-select" id="evento-tipo" name="tipo"><option>Tosa</option><option>Banho</option><option>Veterinário</option><option>Vacina</option><option>Passeio</option><option>Outro</option></select></div>' +
+                    '<div class="col-md-6"><label class="form-label mb-1" for="evento-data">Data</label><input class="form-control" id="evento-data" name="data" type="date" required /></div>' +
+                    '<div class="col-md-6"><label class="form-label mb-1" for="evento-hora">Horário</label><input class="form-control" id="evento-hora" name="hora" type="time" /></div>' +
+                    '<div class="col-12"><label class="form-label mb-1" for="evento-detalhes">Observação</label><input class="form-control" id="evento-detalhes" name="detalhes" maxlength="120" placeholder="Ex.: levar a carteirinha de vacinação" /></div>' +
+                    '<div class="col-12"><button class="btn btn-primary" type="submit"><i class="bi bi-calendar-plus me-1"></i>Adicionar ao calendário</button></div>' +
+                  '</form>' +
+                  '<hr />' +
+                  '<h4 class="h6 fw-bold">Eventos cadastrados</h4>' +
+                  '<div id="eventos-dia"></div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>');
+
+        document.getElementById('mes-anterior').addEventListener('click', () => {
+          mesExibido = new Date(mesExibido.getFullYear(), mesExibido.getMonth() - 1, 1);
+          renderizarCalendario();
+        });
+        document.getElementById('proximo-mes').addEventListener('click', () => {
+          mesExibido = new Date(mesExibido.getFullYear(), mesExibido.getMonth() + 1, 1);
+          renderizarCalendario();
+        });
+        document.getElementById('form-pet').addEventListener('submit', cadastrarPet);
+        document.getElementById('form-evento').addEventListener('submit', cadastrarEvento);
+        document.getElementById('dias-calendario').addEventListener('click', (evento) => {
+          const botao = evento.target.closest('[data-cal-data]');
+          if (!botao) return;
+
+          dataSelecionada = botao.dataset.calData;
+          document.getElementById('evento-data').value = dataSelecionada;
+          renderizarCalendario();
+          renderizarEventos();
+          bootstrap.Modal.getOrCreateInstance(document.getElementById('eventoModal')).show();
+        });
+        document.getElementById('evento-data').value = dataSelecionada;
+        renderizarPets();
+        renderizarCalendario();
+        renderizarEventos();
+      }
+
+      function renderizarPets() {
+        const lista = document.getElementById('lista-pets');
+        const select = document.getElementById('evento-pet');
+
+        if (pets.length === 0) {
+          lista.innerHTML = '<li class="list-group-item px-0 text-secondary">Nenhum pet cadastrado ainda.</li>';
+          select.innerHTML = '<option value="">Cadastre um pet primeiro</option>';
+        } else {
+          lista.innerHTML = pets.map((pet) =>
+            '<li class="list-group-item px-0"><span class="fw-semibold">' + HotelPet.esc(pet.nome) + '</span><span class="text-secondary"> · ' + HotelPet.esc(pet.especie) + '</span></li>'
+          ).join('');
+          select.innerHTML = pets.map((pet) =>
+            '<option value="' + pet.id + '">' + HotelPet.esc(pet.nome) + ' · ' + HotelPet.esc(pet.especie) + '</option>'
+          ).join('');
+        }
+
+        document.querySelector('#form-evento button[type="submit"]').disabled = pets.length === 0;
+      }
+
+      function renderizarCalendario() {
+        const ano = mesExibido.getFullYear();
+        const mes = mesExibido.getMonth();
+        const primeiroDia = new Date(ano, mes, 1).getDay();
+        const quantidadeDias = new Date(ano, mes + 1, 0).getDate();
+        const celulas = [];
+
+        document.getElementById('mes-atual').textContent = mesExibido.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+        for (let indice = 0; indice < primeiroDia; indice++) {
+          celulas.push('<div></div>');
+        }
+
+        for (let dia = 1; dia <= quantidadeDias; dia++) {
+          const data = dataLocal(new Date(ano, mes, dia));
+          const eventosDoDia = eventos.filter((evento) => evento.data === data);
+          const selecionado = data === dataSelecionada;
+          const classe = selecionado ? 'btn-primary' : 'btn-light';
+          const nomesEventos = eventosDoDia.slice(0, 2).map((evento) =>
+            '<span class="d-block small text-truncate mt-1">' + HotelPet.esc(evento.tipo) + ' · ' + HotelPet.esc(nomeDoPet(evento.petId)) + '</span>'
+          ).join('');
+          const maisEventos = eventosDoDia.length > 2 ? '<span class="small">+' + (eventosDoDia.length - 2) + ' eventos</span>' : '';
+
+          celulas.push(
+            '<button type="button" class="btn ' + classe + ' pet-calendar-day text-start" data-cal-data="' + data + '">' +
+              '<span class="fw-semibold">' + dia + '</span>' + nomesEventos + maisEventos +
+            '</button>'
+          );
+        }
+
+        document.getElementById('dias-calendario').innerHTML = celulas.join('');
+      }
+
+      function nomeDoPet(petId) {
+        const pet = pets.find((item) => item.id === Number(petId));
+        return pet ? pet.nome : 'Pet';
+      }
+
+      function renderizarEventos() {
+        const data = new Date(dataSelecionada + 'T00:00:00');
+        const lista = eventos
+          .filter((evento) => evento.data === dataSelecionada)
+          .sort((a, b) => (a.hora || '').localeCompare(b.hora || ''));
+
+        document.getElementById('titulo-dia').textContent = data.toLocaleDateString('pt-BR');
+
+        if (lista.length === 0) {
+          document.getElementById('eventos-dia').innerHTML = '<p class="small text-secondary mb-0">Nenhum evento neste dia.</p>';
+          return;
+        }
+
+        document.getElementById('eventos-dia').innerHTML = lista.map((evento) =>
+          '<div class="d-flex justify-content-between align-items-start gap-2 border-bottom py-2">' +
+            '<div><span class="badge text-bg-primary me-1">' + HotelPet.esc(evento.tipo) + '</span>' +
+              '<span class="fw-semibold">' + HotelPet.esc(nomeDoPet(evento.petId)) + '</span>' +
+              (evento.hora ? '<span class="small text-secondary ms-2">' + HotelPet.esc(evento.hora) + '</span>' : '') +
+              (evento.detalhes ? '<div class="small text-secondary mt-1">' + HotelPet.esc(evento.detalhes) + '</div>' : '') +
+            '</div>' +
+            '<button type="button" class="btn btn-sm btn-outline-danger" data-remover-evento="' + evento.id + '" aria-label="Remover evento"><i class="bi bi-trash"></i></button>' +
+          '</div>'
+        ).join('');
+
+        document.querySelectorAll('[data-remover-evento]').forEach((botao) => {
+          botao.addEventListener('click', () => {
+            eventos = eventos.filter((evento) => evento.id !== Number(botao.dataset.removerEvento));
+            salvarDados();
+            renderizarCalendario();
+            renderizarEventos();
+          });
+        });
+      }
+
+      function cadastrarPet(evento) {
+        evento.preventDefault();
+        const form = evento.currentTarget;
+        pets.push({
+          id: Date.now(),
+          nome: form.elements.nome.value.trim(),
+          especie: form.elements.especie.value.trim(),
+        });
+        salvarDados();
+        form.reset();
+        renderizarPets();
+      }
+
+      function cadastrarEvento(evento) {
+        evento.preventDefault();
+        const form = evento.currentTarget;
+        const dados = Object.fromEntries(new FormData(form));
+        const data = String(dados.data);
+        const dataDoEvento = new Date(data + 'T00:00:00');
+
+        eventos.push({
+          id: Date.now(),
+          petId: Number(dados.petId),
+          tipo: String(dados.tipo),
+          data,
+          hora: String(dados.hora),
+          detalhes: String(dados.detalhes).trim(),
+        });
+        dataSelecionada = data;
+        mesExibido = new Date(dataDoEvento.getFullYear(), dataDoEvento.getMonth(), 1);
+        salvarDados();
+        renderizarCalendario();
+        renderizarEventos();
+        form.reset();
+        form.elements.data.value = dataSelecionada;
+      }
+
+      async function salvarPerfil(evento) {
+        evento.preventDefault();
+        const usuario = HotelPet.usuario();
+        const form = evento.currentTarget;
+        const erro = document.getElementById('erro-perfil');
+        const botao = form.querySelector('button[type="submit"]');
+        erro.classList.add('d-none');
+        botao.disabled = true;
+
+        const dados = {
+          nome: form.elements.nome.value.trim(),
+          sobrenome: form.elements.sobrenome.value.trim(),
+          email: form.elements.email.value.trim(),
+        };
+
+        try {
+          await HotelPet.api('/users/' + usuario.id, {
+            method: 'PATCH',
+            body: JSON.stringify(dados),
+          });
+          const usuarioAtualizado = { id: usuario.id, ...dados };
+          HotelPet.salvarUsuario(usuarioAtualizado);
+          HotelPet.renderizarNav();
+          HotelPet.aviso('Perfil atualizado');
+        } catch (e) {
+          erro.textContent = e.message;
+          erro.classList.remove('d-none');
+        } finally {
+          botao.disabled = false;
+        }
+      }
+
+      document.addEventListener('hotelpet:login', carregarPerfil);
+      carregarPerfil();
     `,
   });
 }

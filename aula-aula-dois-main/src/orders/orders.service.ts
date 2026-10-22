@@ -110,7 +110,6 @@ export class OrdersService {
     return this.formatar(pedido);
   }
 
-  // Converte os campos Decimal do Prisma em números para o front-end
   private formatar(pedido: PedidoComItens) {
     const total = Number(pedido.total);
 

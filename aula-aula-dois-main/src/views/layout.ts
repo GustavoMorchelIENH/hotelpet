@@ -1,4 +1,4 @@
-export function escapeHtml(valor: unknown): string {
+export function escapeHtml(valor: string | number | null | undefined): string {
   return String(valor ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -28,6 +28,11 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
         .navbar-brand { font-weight: 700; }
         .carousel-item img { height: 420px; object-fit: cover; }
         .cart-thumb { width: 96px; height: 72px; object-fit: cover; }
+        .pet-calendar-scroll { overflow-x: auto; }
+        .pet-calendar { min-width: 620px; }
+        .pet-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .35rem; }
+        .pet-calendar-day { height: 96px; overflow: hidden; }
+        @media (max-width: 575px) { .pet-calendar-day { height: 72px; padding: .35rem; } }
       </style>
     </head>
     <body>
@@ -117,7 +122,6 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
             return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
           },
 
-          // Datas vêm do banco como meia-noite UTC; formatar em UTC evita mostrar o dia anterior
           data(valor) {
             return new Date(valor).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
           },
@@ -167,7 +171,6 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
             bootstrap.Modal.getOrCreateInstance(document.getElementById('authModal')).show();
           },
 
-          // Executa a ação se houver usuário logado; caso contrário, pede login e executa depois
           exigirLogin(acao) {
             const usuario = this.usuario();
             if (usuario) return acao(usuario);
@@ -181,6 +184,7 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
             if (usuario) {
               nav.innerHTML =
                 '<span class="small text-muted d-none d-sm-inline">Olá, ' + this.esc(usuario.nome) + '</span>' +
+                '<a href="/perfil" class="btn btn-outline-primary btn-sm">Meu perfil</a>' +
                 '<a href="/pedidos" class="btn btn-outline-primary btn-sm">Meus pedidos</a>' +
                 '<button class="btn btn-link btn-sm text-decoration-none" onclick="HotelPet.sair()">Sair</button>';
             } else {

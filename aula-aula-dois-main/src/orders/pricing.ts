@@ -9,7 +9,6 @@ export interface ItemPrecificavel {
   diarias: number;
 }
 
-// Os cálculos são feitos em centavos para evitar erros de ponto flutuante
 function emCentavos(valor: number): number {
   return Math.round(valor * 100);
 }

@@ -6,6 +6,7 @@ import {
   paginaCheckout,
   paginaPedido,
   paginaPedidos,
+  paginaPerfil,
 } from './views/pages';
 
 const fotoPadrao =
@@ -23,7 +24,6 @@ function formatarPreco(preco: number): string {
   return `R$ ${preco.toFixed(2).replace('.', ',')}`;
 }
 
-// Calendários de entrada/saída e botão Alugar, usados no card e na página do hotel
 function camposReserva(hotelId: number, preco: number): string {
   return `
     <div class="row g-2 mb-3">
@@ -53,8 +53,6 @@ const scriptReserva = `
           return data.toISOString().slice(0, 10);
         }
 
-        // Os calendários começam com entrada hoje e saída amanhã; ao mudar a entrada,
-        // a saída acompanha para continuar pelo menos um dia depois
         const hoje = new Date();
         const hojeIso = new Date(hoje.getTime() - hoje.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
         document.querySelectorAll('[data-entrada]').forEach((entrada) => {
@@ -240,5 +238,9 @@ export class AppService {
 
   getPedidos(): string {
     return paginaPedidos();
+  }
+
+  getPerfil(): string {
+    return paginaPerfil();
   }
 }

@@ -35,6 +35,12 @@ export class AppController {
     return this.appService.getPedidos();
   }
 
+  @Get('perfil')
+  @Header('Content-Type', 'text/html; charset=utf-8')
+  getPerfil(): string {
+    return this.appService.getPerfil();
+  }
+
   @Get('pedido/:id')
   @Header('Content-Type', 'text/html; charset=utf-8')
   getPedido(@Param('id', ParseIntPipe) id: number): string {

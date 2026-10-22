@@ -48,8 +48,6 @@ export class CartService {
       ? new Date(addCartItemDto.dataEntrada)
       : null;
 
-    // O mesmo hotel com a mesma data de entrada vira um item só: com datas, vale o
-    // período novo; sem datas, as diárias são somadas
     const item = await this.prisma.cartItem.findFirst({
       where: { userId, hotelId: addCartItemDto.hotelId, dataEntrada },
     });
