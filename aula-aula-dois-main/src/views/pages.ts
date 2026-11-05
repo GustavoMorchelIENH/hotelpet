@@ -544,14 +544,34 @@ export function paginaPerfil(): string {
           '<div class="row g-4 mt-1">' +
             '<div class="col-lg-5">' +
               '<div class="card border-0 shadow-sm h-100"><div class="card-body p-4">' +
-                '<h3 class="h5 fw-bold">Meus pets</h3>' +
+                '<div class="d-flex justify-content-between align-items-center gap-2 mb-3">' +
+                  '<h3 class="h5 fw-bold mb-0">Meus pets</h3>' +
+                  '<button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#meusPetsModal"><i class="bi bi-images me-1"></i><span id="quantidade-pets">Ver pets (0)</span></button>' +
+                '</div>' +
                 '<form id="form-pet" class="row g-2 mb-3">' +
                   '<div class="col-12"><label class="form-label mb-1" for="pet-nome">Nome</label><input class="form-control" id="pet-nome" name="nome" maxlength="60" required /></div>' +
                   '<div class="col-12"><label class="form-label mb-1" for="pet-especie">Espécie</label><input class="form-control" id="pet-especie" name="especie" placeholder="Cachorro, gato..." maxlength="40" required /></div>' +
+                  '<div class="col-12"><label class="form-label mb-1" for="pet-foto">Foto do pet <span class="text-secondary fw-normal">(opcional)</span></label><input class="form-control" id="pet-foto" type="file" accept="image/jpeg,image/png,image/webp" /><div class="form-text">JPG, PNG ou WebP, até 1 MB.</div></div>' +
+                  '<div class="col-6"><label class="form-label mb-1" for="pet-porte">Porte</label><select class="form-select" id="pet-porte" name="porte"><option value="">Não informado</option><option>Pequeno</option><option>Médio</option><option>Grande</option></select></div>' +
+                  '<div class="col-6"><label class="form-label mb-1" for="pet-idade">Idade (anos)</label><input class="form-control" id="pet-idade" name="idade" type="number" min="0" max="40" /></div>' +
+                  '<div class="col-12"><label class="form-label mb-1" for="pet-vacinacao">Vacinação</label><select class="form-select" id="pet-vacinacao" name="vacinacao"><option value="nao-informado">Não informado</option><option value="em-dia">Em dia</option><option value="pendente">Pendente</option></select></div>' +
+                  '<div class="col-12"><label class="form-label mb-1" for="pet-vacinas">Vacinas ou observações</label><input class="form-control" id="pet-vacinas" name="vacinas" maxlength="120" placeholder="Ex.: antirrábica, V10" /></div>' +
+                  '<div class="col-12"><label class="form-label mb-1" for="pet-necessidades">Necessidades especiais</label><textarea class="form-control" id="pet-necessidades" name="necessidades" rows="2" maxlength="160" placeholder="Ex.: alimentação especial ou medicamento"></textarea></div>' +
+                  '<div class="col-12"><div id="erro-pet" class="alert alert-danger d-none mb-0" role="alert"></div></div>' +
                   '<div class="col-12"><button class="btn btn-primary" type="submit"><i class="bi bi-plus-lg me-1"></i>Cadastrar pet</button></div>' +
                 '</form>' +
-                '<ul id="lista-pets" class="list-group list-group-flush"></ul>' +
               '</div></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="modal fade" id="meusPetsModal" tabindex="-1" aria-labelledby="titulo-meus-pets-modal" aria-hidden="true">' +
+            '<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">' +
+              '<div class="modal-content">' +
+                '<div class="modal-header">' +
+                  '<h3 class="modal-title h5 fw-bold" id="titulo-meus-pets-modal">Meus pets</h3>' +
+                  '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>' +
+                '</div>' +
+                '<div class="modal-body"><div id="lista-pets" class="row g-3"></div></div>' +
+              '</div>' +
             '</div>' +
           '</div>' +
           '<div class="modal fade" id="eventoModal" tabindex="-1" aria-labelledby="titulo-evento-modal" aria-hidden="true">' +
@@ -588,6 +608,9 @@ export function paginaPerfil(): string {
           renderizarCalendario();
         });
         document.getElementById('form-pet').addEventListener('submit', cadastrarPet);
+        document.getElementById('pet-foto').addEventListener('change', () => {
+          mostrarErroPet('');
+        });
         document.getElementById('form-evento').addEventListener('submit', cadastrarEvento);
         document.getElementById('dias-calendario').addEventListener('click', (evento) => {
           const botao = evento.target.closest('[data-cal-data]');
@@ -608,13 +631,28 @@ export function paginaPerfil(): string {
       function renderizarPets() {
         const lista = document.getElementById('lista-pets');
         const select = document.getElementById('evento-pet');
+        document.getElementById('quantidade-pets').textContent = 'Ver pets (' + pets.length + ')';
 
         if (pets.length === 0) {
-          lista.innerHTML = '<li class="list-group-item px-0 text-secondary">Nenhum pet cadastrado ainda.</li>';
+          lista.innerHTML = '<div class="col-12"><p class="text-secondary mb-0">Nenhum pet cadastrado ainda.</p></div>';
           select.innerHTML = '<option value="">Cadastre um pet primeiro</option>';
         } else {
           lista.innerHTML = pets.map((pet) =>
-            '<li class="list-group-item px-0"><span class="fw-semibold">' + HotelPet.esc(pet.nome) + '</span><span class="text-secondary"> · ' + HotelPet.esc(pet.especie) + '</span></li>'
+            '<div class="col-md-6">' +
+              '<div class="card h-100 border-0 shadow-sm">' +
+                (typeof pet.foto === 'string' && /^data:image\\/(jpeg|png|webp);base64,/.test(pet.foto)
+                  ? '<img src="' + HotelPet.esc(pet.foto) + '" class="card-img-top" style="height:180px;object-fit:cover" alt="Foto de ' + HotelPet.esc(pet.nome) + '" />'
+                  : '<div class="d-flex align-items-center justify-content-center bg-light text-secondary" style="height:180px"><i class="bi bi-camera display-5" aria-hidden="true"></i><span class="visually-hidden">Sem foto</span></div>') +
+                '<div class="card-body">' +
+                  '<h4 class="h6 fw-bold mb-1">' + HotelPet.esc(pet.nome) + '</h4>' +
+                  '<div class="text-secondary mb-2">' + HotelPet.esc(pet.especie) + '</div>' +
+                  '<div class="small text-secondary">' +
+                    [pet.porte, pet.idade !== '' && pet.idade != null ? pet.idade + ' anos' : '', pet.vacinacao === 'em-dia' ? 'Vacinas em dia' : pet.vacinacao === 'pendente' ? 'Vacinas pendentes' : 'Vacinação não informada', pet.vacinas].filter(Boolean).map((dado) => HotelPet.esc(dado)).join(' · ') +
+                  '</div>' +
+                  (pet.necessidades ? '<div class="small mt-2"><span class="fw-semibold">Necessidades:</span> ' + HotelPet.esc(pet.necessidades) + '</div>' : '') +
+                '</div>' +
+              '</div>' +
+            '</div>'
           ).join('');
           select.innerHTML = pets.map((pet) =>
             '<option value="' + pet.id + '">' + HotelPet.esc(pet.nome) + ' · ' + HotelPet.esc(pet.especie) + '</option>'
@@ -696,17 +734,64 @@ export function paginaPerfil(): string {
         });
       }
 
-      function cadastrarPet(evento) {
+      function mostrarErroPet(mensagem) {
+        const erro = document.getElementById('erro-pet');
+        erro.textContent = mensagem;
+        erro.classList.toggle('d-none', !mensagem);
+      }
+
+      async function cadastrarPet(evento) {
         evento.preventDefault();
         const form = evento.currentTarget;
-        pets.push({
-          id: Date.now(),
-          nome: form.elements.nome.value.trim(),
-          especie: form.elements.especie.value.trim(),
-        });
-        salvarDados();
-        form.reset();
-        renderizarPets();
+        const botao = form.querySelector('button[type="submit"]');
+        const arquivoFoto = form.querySelector('#pet-foto').files[0];
+        const dados = Object.fromEntries(new FormData(form));
+        mostrarErroPet('');
+        botao.disabled = true;
+
+        try {
+          let foto = '';
+          if (arquivoFoto) {
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(arquivoFoto.type)) {
+              throw new Error('Escolha uma foto JPG, PNG ou WebP.');
+            }
+            if (arquivoFoto.size > 1024 * 1024) {
+              throw new Error('A foto deve ter no máximo 1 MB.');
+            }
+
+            foto = await new Promise((resolve, reject) => {
+              const leitor = new FileReader();
+              leitor.onload = () => resolve(String(leitor.result));
+              leitor.onerror = () => reject(new Error('Não foi possível ler a foto selecionada.'));
+              leitor.readAsDataURL(arquivoFoto);
+            });
+          }
+
+          const pet = {
+            id: Date.now(),
+            nome: String(dados.nome).trim(),
+            especie: String(dados.especie).trim(),
+            porte: String(dados.porte),
+            idade: String(dados.idade),
+            vacinacao: String(dados.vacinacao),
+            vacinas: String(dados.vacinas).trim(),
+            necessidades: String(dados.necessidades).trim(),
+            foto,
+          };
+          const petsAtualizados = pets.concat(pet);
+          localStorage.setItem(chaveDados('pets'), JSON.stringify(petsAtualizados));
+          pets = petsAtualizados;
+          form.reset();
+          renderizarPets();
+        } catch (erro) {
+          mostrarErroPet(
+            erro.name === 'QuotaExceededError'
+              ? 'O armazenamento do navegador está cheio. Remova fotos ou use uma imagem menor.'
+              : erro.message || 'Não foi possível cadastrar o pet.',
+          );
+        } finally {
+          botao.disabled = false;
+        }
       }
 
       function cadastrarEvento(evento) {

@@ -55,6 +55,15 @@ describe('AppController', () => {
     expect(html).toContain("method: 'PATCH'");
     expect(html).toContain('Calendário dos pets');
     expect(html).toContain('Cadastrar pet');
+    expect(html).toContain('id="pet-foto" type="file"');
+    expect(html).toContain('id="meusPetsModal"');
+    expect(html).toContain('Ver pets (0)');
+    expect(html).toContain(
+      "localStorage.setItem(chaveDados('pets'), JSON.stringify(petsAtualizados))",
+    );
+    expect(html).not.toContain(
+      'id="lista-pets" class="list-group list-group-flush"',
+    );
     expect(html).toContain('id="eventoModal"');
     expect(html).toContain('data-cal-data');
     expect(html).toContain(
