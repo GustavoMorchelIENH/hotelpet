@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtService } from '@nestjs/jwt';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -13,12 +15,13 @@ describe('UsersController', () => {
           provide: UsersService,
           useValue: {
             create: jest.fn(),
-            findAll: jest.fn(),
             findOne: jest.fn(),
             update: jest.fn(),
             remove: jest.fn(),
           },
         },
+        { provide: JwtAuthGuard, useValue: { canActivate: jest.fn() } },
+        { provide: JwtService, useValue: { verifyAsync: jest.fn() } },
       ],
     }).compile();
 

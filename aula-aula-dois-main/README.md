@@ -71,6 +71,7 @@ $ cp .env.example .env
 
 - `DATABASE_URL` é a string com pooling (PgBouncer), usada pela aplicação em tempo de execução
 - `DATABASE_URL_UNPOOLED` é a conexão direta, usada pelo Prisma Migrate
+- `JWT_SECRET` é a chave secreta dos tokens JWT e deve ter pelo menos 32 caracteres. Gere uma chave com `openssl rand -base64 32` e configure a mesma variável no ambiente de produção.
 
 Depois crie as tabelas:
 

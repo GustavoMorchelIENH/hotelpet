@@ -99,9 +99,15 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
       <script>
         const HotelPet = {
           chaveUsuario: 'hotelpet:usuario',
+          chaveToken: 'hotelpet:token',
           acaoPendente: null,
 
           usuario() {
+            if (!localStorage.getItem(this.chaveToken)) {
+              localStorage.removeItem(this.chaveUsuario);
+              return null;
+            }
+
             try {
               return JSON.parse(localStorage.getItem(this.chaveUsuario));
             } catch {
@@ -110,11 +116,14 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
           },
 
           salvarUsuario(usuario) {
-            localStorage.setItem(this.chaveUsuario, JSON.stringify(usuario));
+            const { accessToken, ...dadosUsuario } = usuario;
+            localStorage.setItem(this.chaveToken, accessToken);
+            localStorage.setItem(this.chaveUsuario, JSON.stringify(dadosUsuario));
           },
 
           sair() {
             localStorage.removeItem(this.chaveUsuario);
+            localStorage.removeItem(this.chaveToken);
             window.location.href = '/';
           },
 
@@ -151,9 +160,14 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
           },
 
           async api(url, opcoes = {}) {
+            const token = localStorage.getItem(this.chaveToken);
             const resposta = await fetch(url, {
               ...opcoes,
-              headers: { 'Content-Type': 'application/json', ...(opcoes.headers || {}) },
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: 'Bearer ' + token } : {}),
+                ...(opcoes.headers || {}),
+              },
             });
             const dados = await resposta.json().catch(() => null);
 
@@ -255,8 +269,7 @@ export function layout({ titulo, conteudo, script = '' }: LayoutOptions) {
         });
 
         configurarFormulario('form-cadastro', async (dados) => {
-          const criado = await HotelPet.api('/users', { method: 'POST', body: JSON.stringify(dados) });
-          const usuario = { id: criado.id, nome: criado.nome, sobrenome: criado.sobrenome, email: criado.email };
+          const usuario = await HotelPet.api('/users', { method: 'POST', body: JSON.stringify(dados) });
           await HotelPet.entrou(usuario, 'Conta criada! Bem-vindo, ' + usuario.nome + '!');
         });
 
